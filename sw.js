@@ -5,12 +5,17 @@
 // ============================================================
 
 const CACHE_NAME = 'voto-escolar-v2';
-
+const BASE_PATH = '/Mi_paginaVoto/';
 // Archivos que se cachean para funcionar offline
+//const STATIC_ASSETS = [
+  //BASE_PATH,
+  //BASE_PATH + 'index.html',
+  //BASE_PATH + 'manifest.json'
+//];
 const STATIC_ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
+  BASE_PATH,
+  BASE_PATH + 'index.html',
+  BASE_PATH + 'manifest.json',
   'https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap'
 ];
 
@@ -64,7 +69,8 @@ self.addEventListener('fetch', event => {
       }).catch(() => {
         // Fallback a index.html si no hay conexión
         if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
+          //return caches.match('./index.html');
+          return caches.match(BASE_PATH + 'index.html');
         }
       });
     })
