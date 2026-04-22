@@ -1,0 +1,27 @@
+{
+  "name": "Voto Electrónico - Municipio Escolar",
+  "short_name": "Voto Escolar",
+  "description": "Sistema de votación electrónica para municipio escolar. Funciona offline con sincronización a Google Sheets.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0f4fb",
+  "theme_color": "#1a3c6e",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "prefer_related_applications": false
+}

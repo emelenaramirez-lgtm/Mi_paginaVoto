@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Voto Escolar">
+<meta name="theme-color" content="#1a3c6e">
+<link rel="manifest" href="manifest.json">
+<title>Voto Electrónico - Municipio Escolar</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --c-primary: #1a3c6e;
+    --c-primary-light: #2d5fa6;
+    --c-accent: #e8b800;
+    --c-accent-dark: #c49a00;
+    --c-success: #1a7a4a;
+    --c-success-bg: #eaf7ef;
+    --c-danger: #c0392b;
+    --c-danger-bg: #fdecea;
+    --c-bg: #f0f4fb;
+    --c-card: #ffffff;
+    --c-border: #d0daea;
+    --c-text: #0f1f3d;
+    --c-muted: #6b7a96;
+    --c-badge: #edf2ff;
+    --font-head: 'Sora', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --radius: 16px;
+    --shadow: 0 4px 24px rgba(26,60,110,0.10);
+    --transition: 0.22s cubic-bezier(.4,0,.2,1);
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--c-bg);
+    color: var(--c-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  /* HEADER */
+  .app-header {
+    width: 100%;
+    background: var(--c-primary);
+    color: #fff;
+    padding: 18px 28px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  .header-brand { display: flex; align-items: center; gap: 14px; }
+  .header-icon {
+    width: 44px; height: 44px;
+    background: var(--c-accent);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .header-icon svg { width: 26px; height: 26px; }
+  .header-text h1 { font-family: var(--font-head); font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-text p { font-size: 12px; opacity: 0.75; margin-top: 2px; }
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: 10px;
+    font-family: var(--font-body); font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none; transition: var(--transition);
+    text-decoration: none; white-space: nowrap;
+  }
+  .btn-outline-white { background: rgba(255,255,255,0.12); color: #fff; border: 1.5px solid rgba(255,255,255,0.35); }
+  .btn-outline-white:hover { background: rgba(255,255,255,0.22); }
+  .btn-accent { background: var(--c-accent); color: var(--c-primary); font-weight: 700; }
+  .btn-accent:hover { background: var(--c-accent-dark); }
+  .btn-primary { background: var(--c-primary); color: #fff; }
+  .btn-primary:hover { background: var(--c-primary-light); }
+  .btn-success { background: var(--c-success); color: #fff; }
+  .btn-success:hover { background: #155c38; }
+  .btn-danger { background: var(--c-danger); color: #fff; }
+  .btn-ghost { background: transparent; color: var(--c-muted); border: 1.5px solid var(--c-border); }
+  .btn-ghost:hover { background: var(--c-bg); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .app-main { width: 100%; max-width: 560px; padding: 28px 16px 40px; flex: 1; }
+
+  .screen { display: none; animation: fadeIn 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .card { background: var(--c-card); border-radius: var(--radius); border: 1.5px solid var(--c-border); padding: 28px 24px; box-shadow: var(--shadow); }
+  .section-title { font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--c-primary); margin-bottom: 6px; }
+  .section-sub { font-size: 14px; color: var(--c-muted); margin-bottom: 24px; line-height: 1.5; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--c-muted); margin-bottom: 7px; letter-spacing: 0.3px; }
+  .form-input { width: 100%; padding: 13px 16px; border: 1.5px solid var(--c-border); border-radius: 10px; font-family: var(--font-body); font-size: 16px; color: var(--c-text); background: #fff; transition: var(--transition); -webkit-appearance: none; }
+  .form-input:focus { outline: none; border-color: var(--c-primary-light); box-shadow: 0 0 0 3px rgba(45,95,166,0.12); }
+
+  .dni-display { font-family: var(--font-head); font-size: 32px; font-weight: 700; letter-spacing: 8px; color: var(--c-primary); text-align: center; padding: 20px 0 10px; min-height: 64px; }
+  .dni-display.placeholder { color: var(--c-border); }
+  .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+  .numpad-btn { padding: 16px 10px; background: var(--c-badge); border: 1.5px solid var(--c-border); border-radius: 12px; font-family: var(--font-head); font-size: 22px; font-weight: 600; color: var(--c-primary); cursor: pointer; transition: var(--transition); text-align: center; user-select: none; -webkit-user-select: none; }
+  .numpad-btn:active { background: #d6e4ff; transform: scale(0.96); }
+  .numpad-btn.del { font-size: 16px; color: var(--c-danger); background: var(--c-danger-bg); }
+  .numpad-btn.enter { font-size: 15px; font-weight: 700; background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+  .numpad-btn.enter:active { background: var(--c-primary-light); }
+
+  .alert { padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; margin-bottom: 16px; display: none; }
+  .alert.show { display: flex; align-items: center; gap: 10px; }
+  .alert-danger { background: var(--c-danger-bg); color: var(--c-danger); border: 1px solid #f5b7b1; }
+  .alert-success { background: var(--c-success-bg); color: var(--c-success); border: 1px solid #a9dfbf; }
+  .alert-warning { background: #fef9e7; color: #7d6608; border: 1px solid #f7dc6f; }
+  .alert-info { background: #eaf3ff; color: #1a3c6e; border: 1px solid #aed6f1; }
+
+  .candidate-card { border: 2px solid var(--c-border); border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: var(--transition); margin-bottom: 12px; display: flex; align-items: center; gap: 16px; background: #fff; user-select: none; }
+  .candidate-card:hover { border-color: var(--c-primary-light); box-shadow: 0 2px 12px rgba(45,95,166,0.12); }
+  .candidate-card.selected { border-color: var(--c-primary); background: #edf2ff; box-shadow: 0 0 0 3px rgba(45,95,166,0.15); }
+  .candidate-avatar { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: var(--font-head); font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .candidate-info { flex: 1; }
+  .candidate-name { font-family: var(--font-head); font-size: 16px; font-weight: 700; color: var(--c-text); }
+  .candidate-detail { font-size: 13px; color: var(--c-muted); margin-top: 3px; }
+  .candidate-number { width: 30px; height: 30px; border-radius: 8px; background: var(--c-badge); color: var(--c-primary); font-family: var(--font-head); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .candidate-card.selected .candidate-number { background: var(--c-primary); color: #fff; }
+
+  .blank-card { border: 2px dashed var(--c-border); border-radius: 14px; padding: 16px 20px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 14px; background: #fff; margin-bottom: 12px; color: var(--c-muted); }
+  .blank-card:hover { border-color: var(--c-muted); background: var(--c-bg); }
+  .blank-card.selected { border-color: var(--c-muted); background: #f5f5f5; border-style: solid; }
+
+  .confirm-candidate { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 12px; background: #edf2ff; border: 1.5px solid #b3c9f7; margin: 20px 0; }
+
+  .progress-bar { height: 6px; border-radius: 3px; background: var(--c-border); margin-bottom: 24px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--c-primary-light), var(--c-accent)); transition: width 0.5s ease; }
+
+  .result-bar-wrap { margin-bottom: 14px; }
+  .result-bar-header { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
+  .result-bar-name { font-weight: 600; }
+  .result-bar-bg { height: 28px; border-radius: 8px; background: var(--c-border); overflow: hidden; }
+  .result-bar-fill { height: 100%; border-radius: 8px; display: flex; align-items: center; padding-left: 10px; font-size: 12px; font-weight: 700; color: #fff; transition: width 1s cubic-bezier(.4,0,.2,1); }
+  .result-bar-pct { font-size: 14px; font-weight: 700; color: var(--c-primary); }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--c-badge); border-radius: 12px; padding: 16px; text-align: center; }
+  .stat-value { font-family: var(--font-head); font-size: 28px; font-weight: 700; color: var(--c-primary); }
+  .stat-label { font-size: 12px; color: var(--c-muted); margin-top: 4px; }
+
+  .tab-row { display: flex; gap: 0; margin-bottom: 24px; border-radius: 10px; overflow: hidden; border: 1.5px solid var(--c-border); }
+  .tab-btn { flex: 1; padding: 11px; font-family: var(--font-body); font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: #fff; color: var(--c-muted); transition: var(--transition); }
+  .tab-btn.active { background: var(--c-primary); color: #fff; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .candidate-edit-row { display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--c-border); }
+  .candidate-edit-row:last-child { border-bottom: none; }
+
+  .sync-status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .sync-ok { background: rgba(255,255,255,0.18); color: #fff; }
+  .sync-ok .sync-dot { background: #5eead4; }
+  .sync-pending { background: rgba(255,255,255,0.12); color: #fde68a; }
+  .sync-pending .sync-dot { background: #fde68a; }
+  .sync-offline { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+  .sync-offline .sync-dot { background: rgba(255,255,255,0.4); animation: none; }
+
+  .pin-dots { display: flex; gap: 12px; justify-content: center; margin: 18px 0; }
+  .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--c-border); background: #fff; transition: var(--transition); }
+  .pin-dot.filled { background: var(--c-primary); border-color: var(--c-primary); }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; }
+  .badge-voted { background: #d4edda; color: #155724; }
+  .badge-pending { background: var(--c-badge); color: var(--c-primary); }
+
+  .offline-banner { width: 100%; background: #fff3cd; color: #856404; padding: 10px 16px; text-align: center; font-size: 12px; font-weight: 500; display: none; }
+  .offline-banner.show { display: block; }
+
+  .success-icon { width: 80px; height: 80px; border-radius: 50%; background: var(--c-success-bg); border: 3px solid var(--c-success); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; animation: popIn 0.4s cubic-bezier(.17,.67,.35,1.27); }
+  @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .success-icon svg { width: 38px; height: 38px; }
+
+  .divider { border: none; border-top: 1.5px solid var(--c-border); margin: 20px 0; }
+  .text-center { text-align: center; }
+  .mt-4 { margin-top: 16px; }
+  .mt-2 { margin-top: 8px; }
+  .flex { display: flex; }
+  .justify-between { justify-content: space-between; }
+  .items-center { align-items: center; }
+  .w-full { width: 100%; }
+  .text-sm { font-size: 13px; }
+  .text-muted { color: var(--c-muted); }
+
+  @media(max-width: 480px) {
+    .app-header { padding: 14px 16px; }
+    .app-main { padding: 20px 10px 40px; }
+    .card { padding: 20px 16px; }
+    .header-text p { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="offline-banner" id="offlineBanner">
+  ⚠️ Sin conexión — los votos se guardan localmente y se sincronizarán después
+</div>
+
+<div class="app-header">
+  <div class="header-brand">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--c-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1 id="headerTitle">Voto Electrónico</h1>
+      <p id="headerSub">Municipio Escolar</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <div class="sync-status sync-offline" id="syncStatus">
+      <div class="sync-dot"></div><span id="syncLabel">Offline</span>
+    </div>
+    <button class="btn btn-outline-white" onclick="showAdminLogin()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Admin
+    </button>
+  </div>
+</div>
+
+<div class="app-main">
+
+  <!-- PANTALLA: BIENVENIDA -->
+  <div class="screen active" id="screenWelcome">
+    <div class="card text-center">
+      <div style="font-size:52px;margin-bottom:16px">🏫</div>
+      <h2 class="section-title" id="welcomeTitle" style="text-align:center">Elecciones del Municipio Escolar</h2>
+      <p class="section-sub" id="welcomeSub" style="text-align:center">Participa en la elección de tus representantes estudiantiles. Tu voto es secreto y seguro.</p>
+      <div style="background:var(--c-badge);border-radius:10px;padding:14px 16px;margin:16px 0 24px;text-align:left">
+        <p style="font-size:13px;font-weight:600;color:var(--c-primary);margin-bottom:6px">Instrucciones:</p>
+        <p style="font-size:13px;color:var(--c-muted);line-height:1.8">
+          1. Ingresa tu número de DNI<br>
+          2. Verifica tus datos personales<br>
+          3. Elige a tu candidato favorito<br>
+          4. Confirma tu voto de forma definitiva
+        </p>
+      </div>
+      <button class="btn btn-accent w-full" style="padding:16px;font-size:16px;font-family:var(--font-head);border-radius:12px" onclick="showScreen('screenDNI')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h4m-4 4h8"/></svg>
+        Ingresar mi DNI para votar
+      </button>
+    </div>
+  </div>
+
+  <!-- PANTALLA: DNI -->
+  <div class="screen" id="screenDNI">
+    <div class="card">
+      <h2 class="section-title">Ingresa tu DNI</h2>
+      <p class="section-sub">Escribe los 8 dígitos de tu documento de identidad</p>
+      <div class="alert alert-danger" id="dniAlert">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="dniAlertMsg">DNI no encontrado</span>
+      </div>
+      <div class="dni-display placeholder" id="dniDisplay">00000000</div>
+      <div class="numpad">
+        <button class="numpad-btn" onclick="numpadPress('1')">1</button>
+        <button class="numpad-btn" onclick="numpadPress('2')">2</button>
+        <button class="numpad-btn" onclick="numpadPress('3')">3</button>
+        <button class="numpad-btn" onclick="numpadPress('4')">4</button>
+        <button class="numpad-btn" onclick="numpadPress('5')">5</button>
+        <button class="numpad-btn" onclick="numpadPress('6')">6</button>
+        <button class="numpad-btn" onclick="numpadPress('7')">7</button>
+        <button class="numpad-btn" onclick="numpadPress('8')">8</button>
+        <button class="numpad-btn" onclick="numpadPress('9')">9</button>
+        <button class="numpad-btn del" onclick="numpadDel()">⌫</button>
+        <button class="numpad-btn" onclick="numpadPress('0')">0</button>
+        <button class="numpad-btn enter" onclick="validateDNI()">OK ✓</button>
+      </div>
+      <div class="mt-4">
+        <button class="btn btn-ghost w-full" onclick="showScreen('screenWelcome')">← Volver al inicio</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANTALLA: DATOS DEL ESTUDIANTE -->
+  <div class="screen" id="screenStudent">
+    <div class="card">
+      <div class="alert alert-warning show" id="alreadyVotedAlert" style="display:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Este DNI ya ha emitido su voto en esta sesión
+      </div>
+      <h2 class="section-title">Datos del estudiante</h2>
+      <p class="section-sub">Verifica que la información sea correcta antes de continuar</p>
+      <div style="background:var(--c-badge);border-radius:12px;padding:18px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="candidate-avatar" id="studentAvatar" style="background:var(--c-primary);width:52px;height:52px;font-size:18px">ES</div>
+          <div>
+            <div style="font-family:var(--font-head);font-weight:700;font-size:17px" id="studentName">Nombre Estudiante</div>
+            <div style="font-size:13px;color:var(--c-muted);margin-top:3px" id="studentDetails">Grado · Sección</div>
+            <div class="badge badge-pending" style="margin-top:6px" id="studentVoteStatus">Pendiente de votar</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-accent w-full" style="padding:14px;font-size:15px;border-radius:12px" id="btnProceedVote" onclick="showScreen('screenVote')">
+        Continuar a votar →
+      </button>
+      <button class="btn btn-ghost w-full mt-2" onclick="resetDNI()">No soy yo, volver</button>
+    </div>
+  </div>
+
+  <!-- PANTALLA: VOTACIÓN -->
+  <div class="screen" id="screenVote">
+    <div class="card">
+      <div class="progress-bar"><div class="progress-fill" style="width:60%"></div></div>
+      <h2 class="section-title">Elige a tu candidato</h2>
+      <p class="section-sub">Selecciona una opción y confirma tu voto</p>
+      <div id="candidateList"></div>
+      <div class="blank-card" id="blankCard" onclick="selectCandidate('blank')">
+        <div style="font-size:26px">🗳️</div>
+        <div>
+          <div style="font-weight:600;font-size:15px;color:var(--c-muted)">Voto en Blanco</div>
+          <div style="font-size:12px;color:var(--c-muted);margin-top:2px">No deseo elegir ninguna lista</div>
+        </div>
+      </div>
+      <button class="btn btn-primary w-full" style="padding:14px;font-size:15px;border-radius:12px;margin-top:16px" id="btnConfirmVote" onclick="showConfirm()" disabled>
+        Confirmar selección →
+      </button>
+    </div>
+  </div>
+
+  <!-- PANTALLA: CONFIRMACIÓN -->
+  <div class="screen" id="screenConfirm">
+    <div class="card">
+      <div class="progress-bar"><div class="progress-fill" style="width:85%"></div></div>
+      <h2 class="section-title">Confirma tu voto</h2>
+      <p class="section-sub">Esta acción es definitiva. Una vez confirmado no podrás cambiar tu voto.</p>
+      <div class="confirm-candidate">
+        <div class="candidate-avatar" id="confirmAvatar" style="width:52px;height:52px;font-size:18px">?</div>
+        <div>
+          <div style="font-size:12px;color:var(--c-muted);margin-bottom:3px">Estás votando por:</div>
+          <div style="font-family:var(--font-head);font-weight:700;font-size:18px" id="confirmName">—</div>
+          <div style="font-size:13px;color:var(--c-muted);margin-top:2px" id="confirmDetail">—</div>
+        </div>
+      </div>
+      <div style="background:#fff8e1;border:1.5px solid #ffe082;border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13px;color:#7d5a00">
+        <strong>Recuerda:</strong> Tu voto es secreto. No hay forma de saber cómo votaste una vez confirmado.
+      </div>
+      <button class="btn btn-success w-full" style="padding:14px;font-size:15px;font-family:var(--font-head);border-radius:12px" onclick="submitVote()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Confirmar y emitir voto
+      </button>
+      <button class="btn btn-ghost w-full mt-2" onclick="showScreen('screenVote')">← Cambiar selección</button>
+    </div>
+  </div>
+
+  <!-- PANTALLA: ÉXITO -->
+  <div class="screen" id="screenSuccess">
+    <div class="card text-center">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--c-success)" stroke-width="2.5" stroke-linecap="round">
+          <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <h2 class="section-title" style="text-align:center;color:var(--c-success)">¡Voto registrado!</h2>
+      <p class="section-sub" style="text-align:center">Tu participación ha sido registrada exitosamente.</p>
+      <div style="background:var(--c-badge);border-radius:10px;padding:14px 16px;margin:0 0 24px;text-align:left">
+        <div style="font-size:12px;color:var(--c-muted);margin-bottom:4px">Código de registro:</div>
+        <div style="font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--c-primary);letter-spacing:1px" id="voteCode">—</div>
+      </div>
+      <button class="btn btn-primary w-full" style="padding:14px;font-size:15px;border-radius:12px" onclick="newVoter()">
+        Siguiente votante
+      </button>
+    </div>
+  </div>
+
+  <!-- PANTALLA: ADMIN LOGIN -->
+  <div class="screen" id="screenAdminLogin">
+    <div class="card">
+      <h2 class="section-title">Acceso Administrador</h2>
+      <p class="section-sub">Ingresa el PIN de 4 dígitos para acceder al panel</p>
+      <div class="pin-dots" id="pinDots">
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="alert alert-danger" id="pinAlert">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        PIN incorrecto. Inténtalo de nuevo.
+      </div>
+      <div class="numpad">
+        <button class="numpad-btn" onclick="pinPress('1')">1</button>
+        <button class="numpad-btn" onclick="pinPress('2')">2</button>
+        <button class="numpad-btn" onclick="pinPress('3')">3</button>
+        <button class="numpad-btn" onclick="pinPress('4')">4</button>
+        <button class="numpad-btn" onclick="pinPress('5')">5</button>
+        <button class="numpad-btn" onclick="pinPress('6')">6</button>
+        <button class="numpad-btn" onclick="pinPress('7')">7</button>
+        <button class="numpad-btn" onclick="pinPress('8')">8</button>
+        <button class="numpad-btn" onclick="pinPress('9')">9</button>
+        <button class="numpad-btn del" onclick="pinDel()">⌫</button>
+        <button class="numpad-btn" onclick="pinPress('0')">0</button>
+        <button class="numpad-btn enter" onclick="checkPin()">OK ✓</button>
+      </div>
+      <button class="btn btn-ghost w-full mt-4" onclick="showScreen('screenWelcome')">← Cancelar</button>
+    </div>
+  </div>
+
+  <!-- PANTALLA: ADMIN PANEL -->
+  <div class="screen" id="screenAdmin">
+    <div class="card" style="margin-bottom:16px">
+      <div class="flex justify-between items-center" style="margin-bottom:16px">
+        <h2 class="section-title" style="margin:0">Panel de Administración</h2>
+        <button class="btn btn-ghost" onclick="exitAdmin()" style="padding:8px 14px;font-size:12px">Salir</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Votos</div></div>
+        <div class="stat-card"><div class="stat-value" id="statRegistered">0</div><div class="stat-label">DNIs Habilitados</div></div>
+        <div class="stat-card"><div class="stat-value" id="statPending">0</div><div class="stat-label">Sin Votar</div></div>
+        <div class="stat-card"><div class="stat-value" id="statBlank">0</div><div class="stat-label">Votos en Blanco</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="switchTab('tabResults')">Resultados</button>
+        <button class="tab-btn" onclick="switchTab('tabCandidates')">Candidatos</button>
+        <button class="tab-btn" onclick="switchTab('tabSync')">Sincronizar</button>
+        <button class="tab-btn" onclick="switchTab('tabConfig')">Config</button>
+      </div>
+
+      <!-- RESULTADOS -->
+      <div class="tab-content active" id="tabResults">
+        <div id="resultBars"></div>
+        <hr class="divider">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-muted">Votos en este dispositivo</span>
+          <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px" onclick="refreshResults()">↻ Actualizar</button>
+        </div>
+      </div>
+
+      <!-- CANDIDATOS -->
+      <div class="tab-content" id="tabCandidates">
+        <p class="text-sm text-muted" style="margin-bottom:16px">Edita las listas candidatas. Los cambios aplican de inmediato.</p>
+        <div id="candidateEditList"></div>
+        <button class="btn btn-primary w-full mt-4" onclick="saveCandidates()" style="padding:12px">Guardar cambios</button>
+        <hr class="divider">
+        <p class="text-sm text-muted" style="margin-bottom:12px;font-weight:600">Agregar nueva lista:</p>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="text" class="form-input" id="newCandName" placeholder="Nombre de lista" style="padding:10px 12px;font-size:13px">
+          <input type="text" class="form-input" id="newCandDetail" placeholder="Detalle" style="padding:10px 12px;font-size:13px;width:140px">
+          <input type="color" id="newCandColor" value="#2d5fa6" style="width:44px;height:44px;border:1.5px solid var(--c-border);border-radius:10px;cursor:pointer;padding:3px">
+        </div>
+        <button class="btn btn-ghost w-full" onclick="addCandidate()" style="padding:10px">+ Agregar lista</button>
+      </div>
+
+      <!-- SINCRONIZAR -->
+      <div class="tab-content" id="tabSync">
+        <div class="alert alert-info show" style="margin-bottom:16px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Los votos se guardan localmente. Usa este botón para enviarlos a Google Sheets.
+        </div>
+        <div class="form-group">
+          <label class="form-label">URL del Google Apps Script (Web App)</label>
+          <input type="url" class="form-input" id="googleScriptUrl" placeholder="https://script.google.com/macros/s/AKfy.../exec" style="font-size:12px">
+        </div>
+        <div class="alert" id="syncAlert" style="margin-bottom:12px"></div>
+        <button class="btn btn-success w-full" style="padding:13px;font-size:14px" onclick="syncToCloud()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          Sincronizar votos con Google Sheets
+        </button>
+        <div class="text-sm text-muted text-center mt-2" id="lastSyncTime">Última sincronización: nunca</div>
+        <hr class="divider">
+        <p class="text-sm text-muted" style="margin-bottom:10px;font-weight:600">Cargar padrón de DNIs desde Google Sheets:</p>
+        <button class="btn btn-primary w-full" style="padding:12px" onclick="loadDNIsFromSheets()">
+          Cargar DNIs desde la nube
+        </button>
+        <hr class="divider">
+        <p class="text-sm text-muted" style="margin-bottom:10px;font-weight:600">Agregar DNI manualmente (para pruebas):</p>
+        <div style="display:flex;gap:8px">
+          <input type="text" class="form-input" id="manualDNI" placeholder="DNI (8 dígitos)" maxlength="8" style="padding:10px;font-size:13px">
+          <input type="text" class="form-input" id="manualName" placeholder="Nombre completo" style="padding:10px;font-size:13px">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input type="text" class="form-input" id="manualGrade" placeholder="Grado" style="padding:10px;font-size:13px">
+          <input type="text" class="form-input" id="manualSection" placeholder="Sección" style="padding:10px;font-size:13px;width:100px">
+          <button class="btn btn-ghost" onclick="addManualDNI()" style="padding:10px 14px;white-space:nowrap">+ Agregar</button>
+        </div>
+        <hr class="divider">
+        <button class="btn btn-danger w-full" style="padding:12px" onclick="confirmReset()">
+          ⚠️ Reiniciar todos los votos
+        </button>
+      </div>
+
+      <!-- CONFIG -->
+      <div class="tab-content" id="tabConfig">
+        <div class="form-group">
+          <label class="form-label">Nombre de la institución educativa</label>
+          <input type="text" class="form-input" id="cfgSchoolName" placeholder="I.E. Nombre del Colegio">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Título de la elección</label>
+          <input type="text" class="form-input" id="cfgElectionTitle" placeholder="Elecciones del Municipio Escolar 2025">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descripción / instrucciones (pantalla de inicio)</label>
+          <textarea class="form-input" id="cfgDescription" rows="3" style="resize:none"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nuevo PIN de administrador (4 dígitos)</label>
+          <input type="password" class="form-input" id="cfgAdminPin" placeholder="Dejar vacío para no cambiar" maxlength="4">
+        </div>
+        <button class="btn btn-primary w-full" style="padding:12px" onclick="saveConfig()">Guardar configuración</button>
+        <div class="alert alert-success" id="cfgAlert" style="margin-top:12px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/></svg>
+          Configuración guardada correctamente
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// ESTADO GLOBAL
+// ============================================================
+const DB_KEY = 'voto_escolar_v2';
+
+function getDefaultState() {
+  return {
+    config: {
+      schoolName: 'Institución Educativa',
+      electionTitle: 'Elecciones del Municipio Escolar',
+      description: 'Participa en la elección de tus representantes estudiantiles. Tu voto es secreto y seguro.',
+      adminPin: '1234',
+      googleScriptUrl: '',
+      lastSync: null
+    },
+    candidates: [
+      { id: 1, name: 'Lista Azul', detail: 'Lista N° 1', color: '#1a3c6e' },
+      { id: 2, name: 'Lista Verde', detail: 'Lista N° 2', color: '#1a7a4a' },
+      { id: 3, name: 'Lista Roja', detail: 'Lista N° 3', color: '#c0392b' }
+    ],
+    dnisDB: {
+      '12345678': { name: 'Ana García López', grade: '5to Secundaria', section: 'A', voted: false },
+      '87654321': { name: 'Carlos Pérez Ramos', grade: '4to Secundaria', section: 'B', voted: false },
+      '11223344': { name: 'María Torres Vidal', grade: '5to Secundaria', section: 'B', voted: false },
+      '44332211': { name: 'José Mamani Quispe', grade: '3ro Secundaria', section: 'A', voted: false },
+      '55667788': { name: 'Lucía Ramos Flores', grade: '4to Secundaria', section: 'A', voted: false }
+    },
+    votes: []
+  };
+}
+
+function getState() {
+  try { return JSON.parse(localStorage.getItem(DB_KEY)) || getDefaultState(); }
+  catch(e) { return getDefaultState(); }
+}
+function saveState(s) { localStorage.setItem(DB_KEY, JSON.stringify(s)); }
+
+let state = getState();
+let currentDNI = '', dniInput = '', selectedCandidate = null, pinInput = '';
+
+// ============================================================
+// NAVEGACIÓN
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ============================================================
+// INICIO
+// ============================================================
+function applyConfig() {
+  const c = state.config;
+  document.getElementById('headerTitle').textContent = c.electionTitle || 'Voto Electrónico';
+  document.getElementById('headerSub').textContent = c.schoolName || 'Municipio Escolar';
+  document.getElementById('welcomeTitle').textContent = c.electionTitle || 'Elecciones del Municipio Escolar';
+  document.getElementById('welcomeSub').textContent = c.description || '';
+}
+
+// ============================================================
+// DNI
+// ============================================================
+function updateDNIDisplay() {
+  const el = document.getElementById('dniDisplay');
+  el.textContent = dniInput.padEnd(8, '0');
+  el.classList.toggle('placeholder', dniInput.length === 0);
+}
+function numpadPress(d) {
+  if (dniInput.length >= 8) return;
+  dniInput += d;
+  updateDNIDisplay();
+  document.getElementById('dniAlert').classList.remove('show');
+}
+function numpadDel() { dniInput = dniInput.slice(0,-1); updateDNIDisplay(); }
+
+function validateDNI() {
+  if (dniInput.length !== 8) {
+    showAlert('dniAlert', 'Debes ingresar los 8 dígitos de tu DNI');
+    return;
+  }
+  const student = state.dnisDB[dniInput];
+  if (!student) {
+    showAlert('dniAlert', 'DNI no registrado en el padrón electoral de esta institución');
+    return;
+  }
+  currentDNI = dniInput;
+  // Mostrar datos
+  document.getElementById('studentName').textContent = student.name;
+  document.getElementById('studentDetails').textContent = `${student.grade} · Sección ${student.section}`;
+  document.getElementById('studentAvatar').textContent = student.name.split(' ').slice(0,2).map(n=>n[0]).join('');
+  const alreadyAlert = document.getElementById('alreadyVotedAlert');
+  const btnProceed = document.getElementById('btnProceedVote');
+  const badge = document.getElementById('studentVoteStatus');
+  if (student.voted) {
+    alreadyAlert.style.display = 'flex';
+    btnProceed.disabled = true;
+    badge.className = 'badge badge-voted';
+    badge.textContent = 'Ya votó';
+  } else {
+    alreadyAlert.style.display = 'none';
+    btnProceed.disabled = false;
+    badge.className = 'badge badge-pending';
+    badge.textContent = 'Pendiente de votar';
+  }
+  showScreen('screenStudent');
+}
+
+function resetDNI() {
+  dniInput = '';
+  updateDNIDisplay();
+  document.getElementById('dniAlert').classList.remove('show');
+  showScreen('screenDNI');
+}
+
+// ============================================================
+// CANDIDATOS
+// ============================================================
+function renderCandidates() {
+  const list = document.getElementById('candidateList');
+  list.innerHTML = '';
+  state.candidates.forEach((c, i) => {
+    const initials = c.name.split(' ').slice(0,2).map(n=>n[0]).join('');
+    const div = document.createElement('div');
+    div.className = 'candidate-card';
+    div.id = 'cand_' + c.id;
+    div.onclick = () => selectCandidate(c.id);
+    div.innerHTML = `
+      <div class="candidate-avatar" style="background:${c.color}">${initials}</div>
+      <div class="candidate-info">
+        <div class="candidate-name">${c.name}</div>
+        <div class="candidate-detail">${c.detail}</div>
+      </div>
+      <div class="candidate-number">${i+1}</div>`;
+    list.appendChild(div);
+  });
+}
+
+function selectCandidate(id) {
+  selectedCandidate = id;
+  document.querySelectorAll('.candidate-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('blankCard').classList.remove('selected');
+  if (id === 'blank') document.getElementById('blankCard').classList.add('selected');
+  else { const el = document.getElementById('cand_' + id); if(el) el.classList.add('selected'); }
+  document.getElementById('btnConfirmVote').disabled = false;
+}
+
+function showConfirm() {
+  if (!selectedCandidate) return;
+  if (selectedCandidate === 'blank') {
+    document.getElementById('confirmAvatar').textContent = '🗳️';
+    document.getElementById('confirmAvatar').style.background = '#e0e0e0';
+    document.getElementById('confirmName').textContent = 'Voto en Blanco';
+    document.getElementById('confirmDetail').textContent = 'No se elige ninguna lista';
+  } else {
+    const c = state.candidates.find(x => x.id === selectedCandidate);
+    if (!c) return;
+    document.getElementById('confirmAvatar').textContent = c.name.split(' ').slice(0,2).map(n=>n[0]).join('');
+    document.getElementById('confirmAvatar').style.background = c.color;
+    document.getElementById('confirmName').textContent = c.name;
+    document.getElementById('confirmDetail').textContent = c.detail;
+  }
+  showScreen('screenConfirm');
+}
+
+function submitVote() {
+  const code = 'V' + Date.now().toString(36).toUpperCase();
+  state.votes.push({ code, dni: currentDNI, candidate: selectedCandidate, timestamp: new Date().toISOString(), synced: false });
+  if (state.dnisDB[currentDNI]) state.dnisDB[currentDNI].voted = true;
+  saveState(state);
+  document.getElementById('voteCode').textContent = code;
+  showScreen('screenSuccess');
+}
+
+function newVoter() {
+  currentDNI = ''; dniInput = ''; selectedCandidate = null;
+  updateDNIDisplay();
+  document.getElementById('dniAlert').classList.remove('show');
+  showScreen('screenWelcome');
+}
+
+// ============================================================
+// ADMIN
+// ============================================================
+function showAdminLogin() {
+  pinInput = ''; updatePinDots();
+  document.getElementById('pinAlert').classList.remove('show');
+  showScreen('screenAdminLogin');
+}
+function pinPress(d) {
+  if (pinInput.length >= 4) return;
+  pinInput += d; updatePinDots();
+  if (pinInput.length === 4) setTimeout(checkPin, 200);
+}
+function pinDel() { pinInput = pinInput.slice(0,-1); updatePinDots(); }
+function updatePinDots() {
+  document.querySelectorAll('.pin-dot').forEach((dot,i) => dot.classList.toggle('filled', i < pinInput.length));
+}
+function checkPin() {
+  if (pinInput === state.config.adminPin) {
+    document.getElementById('pinAlert').classList.remove('show');
+    loadAdminPanel(); showScreen('screenAdmin');
+  } else {
+    document.getElementById('pinAlert').classList.add('show');
+    pinInput = ''; updatePinDots();
+  }
+}
+function exitAdmin() { showScreen('screenWelcome'); }
+
+function loadAdminPanel() {
+  refreshStats(); refreshResults(); loadCandidateEditor(); loadConfigForm();
+  document.getElementById('googleScriptUrl').value = state.config.googleScriptUrl || '';
+  if (state.config.lastSync)
+    document.getElementById('lastSyncTime').textContent = 'Última sincronización: ' + new Date(state.config.lastSync).toLocaleString('es-PE');
+}
+
+function refreshStats() {
+  const total = state.votes.length;
+  const registered = Object.keys(state.dnisDB).length;
+  const voted = Object.values(state.dnisDB).filter(s => s.voted).length;
+  const blank = state.votes.filter(v => v.candidate === 'blank').length;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statRegistered').textContent = registered;
+  document.getElementById('statPending').textContent = registered - voted;
+  document.getElementById('statBlank').textContent = blank;
+}
+
+function refreshResults() {
+  const container = document.getElementById('resultBars');
+  container.innerHTML = '';
+  const total = state.votes.length;
+  const counts = {}; state.candidates.forEach(c => counts[c.id] = 0); counts['blank'] = 0;
+  state.votes.forEach(v => { if(counts[v.candidate]!==undefined) counts[v.candidate]++; });
+  [...state.candidates.map(c=>({id:c.id,name:c.name,color:c.color})),{id:'blank',name:'Voto en Blanco',color:'#aaa'}].forEach(item => {
+    const cnt = counts[item.id]||0, pct = total>0 ? Math.round((cnt/total)*100) : 0;
+    container.innerHTML += `<div class="result-bar-wrap">
+      <div class="result-bar-header"><span class="result-bar-name">${item.name}</span><span class="result-bar-pct">${cnt} votos · ${pct}%</span></div>
+      <div class="result-bar-bg"><div class="result-bar-fill" style="width:${pct}%;background:${item.color}">${pct>10?pct+'%':''}</div></div>
+    </div>`;
+  });
+}
+
+function loadCandidateEditor() {
+  const container = document.getElementById('candidateEditList');
+  container.innerHTML = '';
+  state.candidates.forEach((c, i) => {
+    container.innerHTML += `<div class="candidate-edit-row">
+      <input type="color" value="${c.color}" onchange="state.candidates[${i}].color=this.value" style="width:38px;height:38px;border:none;border-radius:8px;cursor:pointer;padding:2px;flex-shrink:0">
+      <input type="text" class="form-input" value="${c.name}" placeholder="Nombre" oninput="state.candidates[${i}].name=this.value" style="flex:1;padding:10px 12px;font-size:13px">
+      <input type="text" class="form-input" value="${c.detail}" placeholder="Detalle" oninput="state.candidates[${i}].detail=this.value" style="flex:1;padding:10px 12px;font-size:13px">
+      <button class="btn btn-danger" style="padding:8px 10px;font-size:12px;flex-shrink:0" onclick="removeCandidate(${i})">✕</button>
+    </div>`;
+  });
+}
+
+function addCandidate() {
+  const name = document.getElementById('newCandName').value.trim();
+  const detail = document.getElementById('newCandDetail').value.trim();
+  const color = document.getElementById('newCandColor').value;
+  if (!name) { alert('Escribe el nombre de la lista'); return; }
+  const newId = Date.now();
+  state.candidates.push({ id: newId, name, detail: detail || `Lista N° ${state.candidates.length+1}`, color });
+  saveState(state);
+  document.getElementById('newCandName').value = '';
+  document.getElementById('newCandDetail').value = '';
+  loadCandidateEditor();
+  renderCandidates();
+}
+
+function removeCandidate(i) {
+  if (state.candidates.length <= 1) { alert('Debe haber al menos una lista'); return; }
+  if (!confirm('¿Eliminar esta lista?')) return;
+  state.candidates.splice(i, 1);
+  saveState(state); loadCandidateEditor(); renderCandidates();
+}
+
+function saveCandidates() { saveState(state); renderCandidates(); alert('Candidatos guardados'); }
+
+function loadConfigForm() {
+  document.getElementById('cfgSchoolName').value = state.config.schoolName || '';
+  document.getElementById('cfgElectionTitle').value = state.config.electionTitle || '';
+  document.getElementById('cfgDescription').value = state.config.description || '';
+  document.getElementById('cfgAdminPin').value = '';
+  document.getElementById('cfgAlert').classList.remove('show');
+}
+
+function saveConfig() {
+  state.config.schoolName = document.getElementById('cfgSchoolName').value;
+  state.config.electionTitle = document.getElementById('cfgElectionTitle').value;
+  state.config.description = document.getElementById('cfgDescription').value;
+  const newPin = document.getElementById('cfgAdminPin').value;
+  if (/^\d{4}$/.test(newPin)) state.config.adminPin = newPin;
+  state.config.googleScriptUrl = document.getElementById('googleScriptUrl').value;
+  saveState(state); applyConfig();
+  document.getElementById('cfgAlert').classList.add('show');
+  setTimeout(() => document.getElementById('cfgAlert').classList.remove('show'), 3000);
+}
+
+function addManualDNI() {
+  const dni = document.getElementById('manualDNI').value.trim();
+  const name = document.getElementById('manualName').value.trim();
+  const grade = document.getElementById('manualGrade').value.trim();
+  const section = document.getElementById('manualSection').value.trim();
+  if (!dni || dni.length!==8 || !/^\d{8}$/.test(dni)) { alert('DNI debe tener 8 dígitos numéricos'); return; }
+  if (!name) { alert('Ingresa el nombre del estudiante'); return; }
+  state.dnisDB[dni] = { name, grade: grade||'Sin especificar', section: section||'—', voted: false };
+  saveState(state); refreshStats();
+  document.getElementById('manualDNI').value = '';
+  document.getElementById('manualName').value = '';
+  document.getElementById('manualGrade').value = '';
+  document.getElementById('manualSection').value = '';
+  alert(`DNI ${dni} agregado correctamente`);
+}
+
+// ============================================================
+// SINCRONIZACIÓN
+// ============================================================
+async function syncToCloud() {
+  const url = document.getElementById('googleScriptUrl').value.trim();
+  if (!url) { showSyncAlert('warning', 'Ingresa la URL del Google Apps Script primero'); return; }
+  const unsynced = state.votes.filter(v => !v.synced);
+  if (!unsynced.length) { showSyncAlert('success', 'No hay votos pendientes por sincronizar'); return; }
+  showSyncAlert('info', `Enviando ${unsynced.length} votos...`);
+  updateSyncStatus('pending', 'Sincronizando...');
+  try {
+    await fetch(url, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'syncVotes', votes: unsynced, election: state.config.electionTitle, institution: state.config.schoolName, timestamp: new Date().toISOString() })
+    });
+    state.votes.forEach(v => { v.synced = true; });
+    state.config.lastSync = new Date().toISOString();
+    state.config.googleScriptUrl = url;
+    saveState(state);
+    showSyncAlert('success', `✓ ${unsynced.length} votos sincronizados`);
+    document.getElementById('lastSyncTime').textContent = 'Última sincronización: ' + new Date().toLocaleString('es-PE');
+    updateSyncStatus('ok', 'Sincronizado');
+  } catch(err) {
+    showSyncAlert('danger', 'Error de red. Los votos siguen guardados localmente.');
+    updateSyncStatus('offline', 'Offline');
+  }
+}
+
+async function loadDNIsFromSheets() {
+  const url = document.getElementById('googleScriptUrl').value.trim();
+  if (!url) { showSyncAlert('warning', 'Configura la URL del script primero'); return; }
+  showSyncAlert('info', 'Cargando padrón...');
+  try {
+    const res = await fetch(url + '?action=getDNIs');
+    const data = await res.json();
+    if (data.dnisDB) {
+      // Preservar estado de votación existente
+      Object.keys(data.dnisDB).forEach(dni => {
+        if (state.dnisDB[dni]) data.dnisDB[dni].voted = state.dnisDB[dni].voted;
+      });
+      state.dnisDB = data.dnisDB;
+      saveState(state); refreshStats();
+      showSyncAlert('success', `✓ Padrón cargado: ${Object.keys(data.dnisDB).length} estudiantes`);
+    } else { showSyncAlert('danger', 'Respuesta inválida del servidor'); }
+  } catch(e) { showSyncAlert('danger', 'No se pudo cargar el padrón. Verifica la URL y la conexión.'); }
+}
+
+function confirmReset() {
+  if (confirm('¿Seguro? Esto eliminará TODOS los votos registrados en este dispositivo. No se puede deshacer.')) {
+    if (confirm('Confirma una vez más: ¿eliminar todos los votos?')) {
+      state.votes = [];
+      Object.keys(state.dnisDB).forEach(k => { state.dnisDB[k].voted = false; });
+      saveState(state); loadAdminPanel();
+      alert('Votos reiniciados correctamente');
+    }
+  }
+}
+
+function showSyncAlert(type, msg) {
+  const el = document.getElementById('syncAlert');
+  el.className = `alert alert-${type} show`; el.textContent = msg;
+  if (type==='success') setTimeout(() => el.classList.remove('show'), 5000);
+}
+
+function updateSyncStatus(status, label) {
+  document.getElementById('syncStatus').className = `sync-status sync-${status}`;
+  document.getElementById('syncLabel').textContent = label;
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(id) {
+  const ids = ['tabResults','tabCandidates','tabSync','tabConfig'];
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ids[i]===id));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id==='tabResults') { refreshStats(); refreshResults(); }
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function showAlert(id, msg) {
+  const el = document.getElementById(id);
+  const span = el.querySelector('span');
+  if (span && msg) span.textContent = msg;
+  el.classList.add('show');
+}
+
+function checkOnline() {
+  document.getElementById('offlineBanner').classList.toggle('show', !navigator.onLine);
+  if (navigator.onLine) updateSyncStatus('ok', 'En línea');
+  else updateSyncStatus('offline', 'Offline');
+}
+window.addEventListener('online', checkOnline);
+window.addEventListener('offline', checkOnline);
+
+// ============================================================
+// SERVICE WORKER (PWA)
+// ============================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+state = getState();
+applyConfig();
+renderCandidates();
+checkOnline();
+updateDNIDisplay();
+</script>
+</body>
+</html>
