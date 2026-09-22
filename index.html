@@ -131,7 +131,8 @@
   .candidate-card { border: 2px solid var(--c-border); border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: var(--transition); margin-bottom: 12px; display: flex; align-items: center; gap: 16px; background: #fff; user-select: none; }
   .candidate-card:hover { border-color: var(--c-primary-light); box-shadow: 0 2px 12px rgba(45,95,166,0.12); }
   .candidate-card.selected { border-color: var(--c-primary); background: #edf2ff; box-shadow: 0 0 0 3px rgba(45,95,166,0.15); }
-  .candidate-avatar { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: var(--font-head); font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .candidate-avatar { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: var(--font-head); font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0; overflow: hidden; }
+  .candidate-avatar img {           /* ← NUEVO */ width: 100%; height: 100%; object-fit: cover; display: block; }
   .candidate-info { flex: 1; }
   .candidate-name { font-family: var(--font-head); font-size: 16px; font-weight: 700; color: var(--c-text); }
   .candidate-detail { font-size: 13px; color: var(--c-muted); margin-top: 3px; }
@@ -534,6 +535,14 @@
 </div>
 
 <script>
+
+state = getState();
+
+// Garantizar que todos los candidatos tengan el campo image
+let migrado = false;
+state.candidates.forEach(c => { if (c.image === undefined) { c.image = ''; migrado = true; } });
+if (migrado) saveState(state);
+
 // ============================================================
 // ESTADO GLOBAL
 // ============================================================
@@ -550,9 +559,13 @@ function getDefaultState() {
       lastSync: null
     },
     candidates: [
-      { id: 1, name: 'Lista Azul', detail: 'Lista N° 1', color: '#1a3c6e' },
-      { id: 2, name: 'Lista Verde', detail: 'Lista N° 2', color: '#1a7a4a' },
-      { id: 3, name: 'Lista Roja', detail: 'Lista N° 3', color: '#c0392b' }
+    { id: 1, name: 'Lista 1', detail: 'Lista N° 1', color: '#1a3c6e', image: '' },
+	{ id: 2, name: 'Lista 2', detail: 'Lista N° 2', color: '#1a7a4a', image: '' },
+    { id: 3, name: 'Lista 3', detail: 'Lista N° 3', color: '#c0392b', image: '' },
+    { id: 4, name: 'Lista 4', detail: 'Lista N° 4', color: '#8e44ad', image: '' },
+    { id: 5, name: 'Lista 5', detail: 'Lista N° 5', color: '#d35400', image: '' },
+    { id: 6, name: 'Lista 6', detail: 'Lista N° 6', color: '#16a085', image: '' }
+	  
     ],
     dnisDB: {
       '12345678': { name: 'Ana García López', grade: '5to Secundaria', section: 'A', voted: false },
@@ -657,12 +670,15 @@ function renderCandidates() {
   list.innerHTML = '';
   state.candidates.forEach((c, i) => {
     const initials = c.name.split(' ').slice(0,2).map(n=>n[0]).join('');
+    const avatarInner = c.image
+      ? `<img src="${c.image}" alt="${c.name}">`
+      : initials;
     const div = document.createElement('div');
     div.className = 'candidate-card';
     div.id = 'cand_' + c.id;
     div.onclick = () => selectCandidate(c.id);
     div.innerHTML = `
-      <div class="candidate-avatar" style="background:${c.color}">${initials}</div>
+      <div class="candidate-avatar" style="background:${c.color}">${avatarInner}</div>
       <div class="candidate-info">
         <div class="candidate-name">${c.name}</div>
         <div class="candidate-detail">${c.detail}</div>
@@ -671,6 +687,7 @@ function renderCandidates() {
     list.appendChild(div);
   });
 }
+
 
 function selectCandidate(id) {
   selectedCandidate = id;
@@ -683,16 +700,21 @@ function selectCandidate(id) {
 
 function showConfirm() {
   if (!selectedCandidate) return;
+  const avatarEl = document.getElementById('confirmAvatar');
   if (selectedCandidate === 'blank') {
-    document.getElementById('confirmAvatar').textContent = '🗳️';
-    document.getElementById('confirmAvatar').style.background = '#e0e0e0';
+    avatarEl.innerHTML = '🗳️';
+    avatarEl.style.background = '#e0e0e0';
     document.getElementById('confirmName').textContent = 'Voto en Blanco';
     document.getElementById('confirmDetail').textContent = 'No se elige ninguna lista';
   } else {
     const c = state.candidates.find(x => x.id === selectedCandidate);
     if (!c) return;
-    document.getElementById('confirmAvatar').textContent = c.name.split(' ').slice(0,2).map(n=>n[0]).join('');
-    document.getElementById('confirmAvatar').style.background = c.color;
+    if (c.image) {
+      avatarEl.innerHTML = `<img src="${c.image}" alt="${c.name}">`;
+    } else {
+      avatarEl.textContent = c.name.split(' ').slice(0,2).map(n=>n[0]).join('');
+    }
+    avatarEl.style.background = c.color;
     document.getElementById('confirmName').textContent = c.name;
     document.getElementById('confirmDetail').textContent = c.detail;
   }
@@ -780,13 +802,62 @@ function loadCandidateEditor() {
   const container = document.getElementById('candidateEditList');
   container.innerHTML = '';
   state.candidates.forEach((c, i) => {
-    container.innerHTML += `<div class="candidate-edit-row">
-      <input type="color" value="${c.color}" onchange="state.candidates[${i}].color=this.value" style="width:38px;height:38px;border:none;border-radius:8px;cursor:pointer;padding:2px;flex-shrink:0">
-      <input type="text" class="form-input" value="${c.name}" placeholder="Nombre" oninput="state.candidates[${i}].name=this.value" style="flex:1;padding:10px 12px;font-size:13px">
-      <input type="text" class="form-input" value="${c.detail}" placeholder="Detalle" oninput="state.candidates[${i}].detail=this.value" style="flex:1;padding:10px 12px;font-size:13px">
-      <button class="btn btn-danger" style="padding:8px 10px;font-size:12px;flex-shrink:0" onclick="removeCandidate(${i})">✕</button>
-    </div>`;
+    const preview = c.image
+      ? `<img src="${c.image}" style="width:100%;height:100%;object-fit:cover;border-radius:9px">`
+      : `<span style="font-size:10px;color:#8b98b0;text-align:center;line-height:1.1">Subir<br>logo</span>`;
+    container.innerHTML += `
+      <div class="candidate-edit-row" style="flex-wrap:wrap">
+        <label title="Subir logo"
+          style="width:46px;height:46px;border-radius:10px;background:${c.color}22;
+                 border:1.5px dashed ${c.color};display:flex;align-items:center;justify-content:center;
+                 cursor:pointer;overflow:hidden;flex-shrink:0">
+          ${preview}
+          <input type="file" accept="image/*" style="display:none"
+                 onchange="handleCandidateImage(event, ${i})">
+        </label>
+        <input type="color" value="${c.color}"
+               onchange="state.candidates[${i}].color=this.value;loadCandidateEditor();renderCandidates()"
+               style="width:38px;height:38px;border:none;border-radius:8px;cursor:pointer;padding:2px;flex-shrink:0">
+        <input type="text" class="form-input" value="${c.name}" placeholder="Nombre"
+               oninput="state.candidates[${i}].name=this.value"
+               style="flex:1;padding:10px 12px;font-size:13px;min-width:110px">
+        <input type="text" class="form-input" value="${c.detail}" placeholder="Detalle"
+               oninput="state.candidates[${i}].detail=this.value"
+               style="flex:1;padding:10px 12px;font-size:13px;min-width:110px">
+        <button class="btn btn-danger" style="padding:8px 10px;font-size:12px;flex-shrink:0"
+                onclick="removeCandidate(${i})">✕</button>
+        ${c.image ? `<button class="btn btn-ghost" style="padding:5px 10px;font-size:11px;flex:1 0 100%;margin-top:4px"
+                onclick="state.candidates[${i}].image='';saveState(state);loadCandidateEditor();renderCandidates()">
+                Quitar logo actual</button>` : ''}
+      </div>`;
   });
+}
+
+// Procesa y redimensiona la imagen antes de guardarla en base64
+function handleCandidateImage(event, index) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { alert('El archivo debe ser una imagen'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 220;               // lado máximo en px
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
+      else       { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      // JPEG al 80% para que ocupe poco en localStorage
+      state.candidates[index].image = canvas.toDataURL('image/jpeg', 0.8);
+      saveState(state);
+      loadCandidateEditor();
+      renderCandidates();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function addCandidate() {
@@ -795,13 +866,21 @@ function addCandidate() {
   const color = document.getElementById('newCandColor').value;
   if (!name) { alert('Escribe el nombre de la lista'); return; }
   const newId = Date.now();
-  state.candidates.push({ id: newId, name, detail: detail || `Lista N° ${state.candidates.length+1}`, color });
+  state.candidates.push({
+    id: newId,
+    name,
+    detail: detail || `Lista N° ${state.candidates.length + 1}`,
+    color,
+    image: ''
+  });
   saveState(state);
   document.getElementById('newCandName').value = '';
   document.getElementById('newCandDetail').value = '';
   loadCandidateEditor();
   renderCandidates();
+  alert('Lista agregada. Ahora súbele el logo desde el recuadro punteado.');
 }
+
 
 function removeCandidate(i) {
   if (state.candidates.length <= 1) { alert('Debe haber al menos una lista'); return; }
