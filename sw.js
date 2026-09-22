@@ -4,7 +4,7 @@
 // Permite que la app funcione completamente offline
 // ============================================================
 
-const CACHE_NAME = 'voto-escolar-v2';
+const CACHE_NAME = 'voto-escolar-v3';
 const BASE_PATH = '/Mi_paginaVoto/';
 // Archivos que se cachean para funcionar offline
 //const STATIC_ASSETS = [
